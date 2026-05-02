@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>Anatomy Explorer | Human Body Systems</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg-color: #f4f7fc;
+        --card-bg: #ffffff;
+        --text-main: #1e2a3e;
+        --text-secondary: #4a5b6e;
+        --accent-red: #c73b2b;
+        --shadow-sm:
+          0 8px 20px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.02);
+        --shadow-hover:
+          0 20px 30px -12px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.05);
+        --border-radius-card: 20px;
+        --border-radius-img: 16px;
+      }
+
+      body {
+        font-family:
+          "Inter", system-ui, "Segoe UI", "Roboto", "Helvetica Neue", sans-serif;
+        background-color: var(--bg-color);
+        margin: 0;
+        padding: 2rem 1.5rem;
+        color: var(--text-main);
+        line-height: 1.4;
+      }
+
+      /* smooth container */
+      .explorer-wrapper {
+        max-width: 1280px;
+        margin: 0 auto;
+      }
+
+      /* header styling — crisp & clean like screenshot */
+      .header {
+        text-align: center;
+        margin-bottom: 3rem;
+      }
+
+      .header h1 {
+        font-size: 2.3rem;
+        font-weight: 600;
+        letter-spacing: -0.3px;
+        background: linear-gradient(135deg, #1e2a3e 0%, #2c3e4e 100%);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        display: inline-block;
+        padding-bottom: 8px;
+        border-bottom: 3px solid var(--accent-red);
+      }
+
+      /* 2‑column grid, exactly 2 cards per row (desktop & tablet) */
+      .card-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 28px;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+
+      /* modern card with left image — no overflow, flexible height */
+      .organ-card {
+        display: flex;
+        background: var(--card-bg);
+        border-radius: 0px;
+        overflow: clip;
+        cursor: pointer;
+        transition: all 0.25s ease-in-out;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid rgba(128, 128, 128, 0.498);
+      }
+      .organ-card:hover {
+        box-shadow: var(--shadow-hover);
+        transform: translateY(-2px);
+      }
+      .image-placeholder {
+        flex: 0 0 130px; /* fixed width, never shrink/grow */
+        width: 130px;
+        background: #eef2f5;
+        position: relative;
+        overflow: hidden;
+        border-top-left-radius: var(--border-radius-card);
+        border-bottom-left-radius: var(--border-radius-card);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* image fills the entire placeholder without overflow, perfect aspect ratio coverage */
+      .image-placeholder img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* ensures full coverage, no empty gaps, prevents overflow */
+        display: block;
+      }
+
+      /* right side content — comfy padding, no overflow */
+      .card-content {
+        flex: 1;
+        padding: 1.25rem 1.4rem 1.4rem 1.25rem;
+        background: var(--card-bg);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .card-content h2 {
+        margin: 0 0 10px 0;
+        font-size: 1.45rem;
+        font-weight: 600;
+        letter-spacing: -0.2px;
+        color: #1e2a3e;
+        line-height: 1.3;
+      }
+
+      .card-content p {
+        font-size: 0.92rem;
+        color: var(--text-secondary);
+        line-height: 1.45;
+        margin: 0;
+      }
+
+      /* small bottom accent (like a subtle red indicator on hover) */
+      .organ-card:active {
+        transform: translateY(-2px);
+      }
+
+      /* ✅ RESPONSIVE: on narrow screens, switch to 1 column (mobile first) */
+      @media (max-width: 780px) {
+        body {
+          padding: 1.5rem 1rem;
+        }
+        .card-container {
+          grid-template-columns: 1fr;
+          gap: 24px;
+          max-width: 580px;
+        }
+        .image-placeholder {
+          flex: 0 0 110px;
+          width: 110px;
+        }
+        .card-content {
+          padding: 1rem 1.2rem 1.2rem 1rem;
+        }
+        .card-content h2 {
+          font-size: 1.3rem;
+        }
+      }
+
+      /* medium-large screens: keep 2 cols with comfy gap */
+      @media (min-width: 1024px) {
+        .card-container {
+          gap: 32px;
+        }
+        .image-placeholder {
+          flex: 0 0 145px;
+          width: 145px;
+        }
+        .card-content {
+          padding: 1.5rem 1.6rem 1.6rem 1.5rem;
+        }
+      }
+
+      /* optional: fix any weird overflow on images inside card */
+      .organ-card,
+      .image-placeholder,
+      .card-content {
+        overflow: visible;
+      }
+
+      /* ensure image wrapper never bleeds outside border radius */
+      .image-placeholder {
+        border-top-left-radius: inherit;
+        border-bottom-left-radius: inherit;
+      }
+
+      /* for ultra widescreen, keep 2 columns but center nicely */
+      @media (min-width: 1400px) {
+        .card-container {
+          max-width: 1200px;
+        }
+      }
+
+      /* loading / fallback graceful (no overflow) */
+      img {
+        background-color: #d9e2e8;
+        object-fit: cover;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="explorer-wrapper">
+      <div class="header">
+        <h1>Human Organ Explorer</h1>
+      </div>
+
+      <div class="card-container">
+        <!-- Cardiovascular System Card -->
+        <div class="organ-card" onclick="navigateToExplorer('heart')">
+          <div class="image-placeholder">
+            <img
+              src="https://i5.walmartimages.com/seo/24x36-gallery-poster-Diagram-of-the-heart_6b509235-1cb3-415b-a960-b4b0c01da0ba.6ed79e4c81e055464449d7cfba43468b.jpeg?odnHeight=573&odnWidth=573&odnBg=FFFFFF"
+              alt="Detailed heart anatomy diagram"
+              loading="lazy"
+            />
+          </div>
+          <div class="card-content">
+            <h2>Cardiovascular System</h2>
+            <p>
+              Explore the heart, arteries, and how blood travels through your
+              body.
+            </p>
+          </div>
+        </div>
+
+        <!-- Nervous System Card -->
+        <div class="organ-card" onclick="navigateToExplorer('brain')">
+          <div class="image-placeholder">
+            <img
+              src="https://media.geeksforgeeks.org/wp-content/uploads/20231011151200/Human-Brain.png"
+              alt="Human brain lobes and anatomy"
+              loading="lazy"
+            />
+          </div>
+          <div class="card-content">
+            <h2>Nervous System</h2>
+            <p>
+              Discover how the brain controls your thoughts, memory, and
+              movement.
+            </p>
+          </div>
+        </div>
+
+        <!-- Visual System Card -->
+        <div class="organ-card" onclick="navigateToExplorer('eye')">
+          <div class="image-placeholder">
+            <img
+              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaq4Y-FMeb3tURKOwsb55BlszvNE212hDpiA&s"
+              alt="Cross section of human eye"
+              loading="lazy"
+            />
+          </div>
+          <div class="card-content">
+            <h2>Visual System</h2>
+            <p>
+              Understand how your eyes capture light to let you see the world.
+            </p>
+          </div>
+        </div>
+
+        <!-- Respiratory System Card -->
+        <div class="organ-card" onclick="navigateToExplorer('lungs')">
+          <div class="image-placeholder">
+            <img
+              src="https://www.gtsimulators.com/cdn/shop/files/lungs-with-larynx-model-7-parts-mg30888-5208354_800x.jpg?v=1755120205"
+              alt="3D model of lungs and respiratory tract"
+              loading="lazy"
+            />
+          </div>
+          <div class="card-content">
+            <h2>Respiratory System</h2>
+            <p>
+              See how your lungs take in oxygen and keep your body energized.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function navigateToExplorer(organId) {
+        // Interactive navigation (keeps phase-2 linking)
+        window.location.href = `explorer.html?organ=${organId}`;
+      }
+    </script>
+  </body>
+</html>
