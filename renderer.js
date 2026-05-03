@@ -299,7 +299,7 @@ const organOverview = {
   heart: {
     title: "Human Heart",
     summary: `
-      <p>The heart is a muscular organ that pumps blood through the blood vessels of the circulatory system. It has four chambers — two atria and two ventricles — and supports both pulmonary and systemic circulation. The heart’s coordinated contractions are driven by electrical signals originating in the sinoatrial node.</p>
+      <p>The heart is a muscular organ that pumps blood through the blood vessels of the circulatory system. It has four chambers two atria and two ventricles and supports both pulmonary and systemic circulation. The heart’s coordinated contractions are driven by electrical signals originating in the sinoatrial node.</p>
       <ul>
         <li>Pumps about 5 liters of blood per minute at rest.</li>
         <li>Has four main valves: tricuspid, pulmonary, mitral, and aortic.</li>
@@ -353,6 +353,7 @@ function showOrganOverview(organId) {
   const data = organOverview[organId] || organOverview.heart;
 
   title.innerHTML = data.title;
+  document.title = `Organ Explorer | ${data.title}`;
 
   desc.innerHTML = `
     <div class="fade-in">
