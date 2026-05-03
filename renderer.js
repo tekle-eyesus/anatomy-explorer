@@ -293,6 +293,87 @@ function highlightPart(part) {
 /* =====================================
    Organ Data
 ===================================== */
+/* Overview information for whole organs (shown when user navigates from cards)
+   Keys should match the `organ` query param used by index.html navigation. */
+const organOverview = {
+  heart: {
+    title: "Human Heart",
+    summary: `
+      <p>The heart is a muscular organ that pumps blood through the blood vessels of the circulatory system. It has four chambers — two atria and two ventricles — and supports both pulmonary and systemic circulation. The heart’s coordinated contractions are driven by electrical signals originating in the sinoatrial node.</p>
+      <ul>
+        <li>Pumps about 5 liters of blood per minute at rest.</li>
+        <li>Has four main valves: tricuspid, pulmonary, mitral, and aortic.</li>
+        <li>Supplied by the coronary arteries that run along its surface.</li>
+      </ul>
+    `,
+    more: `Click any heart part to learn about it.`,
+  },
+  brain: {
+    title: "Human Brain",
+    summary: `
+      <p>The brain is the control center of the nervous system. It processes sensory information, coordinates movement, and enables thought, memory, and emotion. Major regions include the cerebrum, cerebellum, and brainstem.</p>
+      <ul>
+        <li>The cerebrum controls higher functions like reasoning and speech.</li>
+        <li>The cerebellum manages balance and coordinated movement.</li>
+        <li>The brainstem regulates heartbeat and breathing.</li>
+      </ul>
+    `,
+    more: `Click any exposed brain region to learn about it.`,
+  },
+  eye: {
+    title: "Human Eye",
+    summary: `
+      <p>The eye captures light and converts it into electrical signals that the brain interprets as vision. Key parts include the cornea, lens, retina, iris, and optic nerve.</p>
+      <ul>
+        <li>The retina contains photoreceptors (rods and cones) that detect light.</li>
+        <li>The lens adjusts focus for near and far objects.</li>
+        <li>The iris controls the pupil size to regulate light intake.</li>
+      </ul>
+    `,
+    more: `Click any labeled eye structure to learn about it.`,
+  },
+  lungs: {
+    title: "Human Lungs",
+    summary: `
+      <p>The lungs are the primary organs of respiration. They exchange oxygen and carbon dioxide between the air and blood via tiny air sacs called alveoli. The diaphragm and intercostal muscles drive breathing.</p>
+      <ul>
+        <li>Right lung has three lobes, left lung has two lobes.</li>
+        <li>Alveoli provide a large surface area for gas exchange.</li>
+        <li>Air travels through bronchi and bronchioles to reach alveoli.</li>
+      </ul>
+    `,
+    more: `Click any lung structure to learn about it.`,
+  },
+};
+
+function showOrganOverview(organId) {
+  const title = document.getElementById("organ-title");
+  const desc = document.getElementById("part-description");
+
+  const data = organOverview[organId] || organOverview.heart;
+
+  title.innerHTML = data.title;
+
+  desc.innerHTML = `
+    <div class="fade-in">
+      <div class="section-card">
+        <h3>Overview</h3>
+        ${data.summary}
+      </div>
+
+      <div class="section-card fact-card">
+        <h3>Tip</h3>
+        <p class="fact-text">${data.more}</p>
+      </div>
+
+      <div class="section-card">
+        <h3>Quick Hint</h3>
+        <p>Tap any highlighted/interactive part on the model to see focused information about that part.</p>
+      </div>
+    </div>
+  `;
+}
+
 const organData = {
   right_atrium_jnt6: {
     title: "Right Atrium",
@@ -667,5 +748,8 @@ function animate() {
   controls.update();
   renderer.render(scene, activeCamera);
 }
+
+// show overview for the selected organ on initial load
+showOrganOverview(selectedOrgan);
 
 animate();
