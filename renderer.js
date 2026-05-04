@@ -344,6 +344,18 @@ const organOverview = {
     `,
     more: `Click any lung structure to learn about it.`,
   },
+  kidneys: {
+    title: "Human Kidney",
+    summary: `
+      <p>The kidneys are two bean-shaped organs that filter waste from the blood, regulate fluid balance, and help control blood pressure. They produce urine by removing excess water, salts, and metabolic waste while keeping useful substances in the body.</p>
+      <ul>
+        <li>Each kidney contains around one million tiny filtering units called nephrons.</li>
+        <li>The kidneys help balance electrolytes such as sodium and potassium.</li>
+        <li>They also release hormones that support red blood cell production and blood pressure control.</li>
+      </ul>
+    `,
+    more: `Click any kidney part to learn about it.`,
+  },
 };
 
 function showOrganOverview(organId) {
