@@ -1,18 +1,13 @@
-/**
- * renderer.js
- * CLICKABLE HEART + PLAY/PAUSE HEARTBEAT ANIMATION
- */
-
 const canvas = document.getElementById("glCanvas");
 
 /* =====================================
-   Detect Organ From URL
+   get Organ From URL
 ===================================== */
 const params = new URLSearchParams(window.location.search);
 const selectedOrgan = params.get("organ") || "heart";
 
 /* =====================================
-   Scene
+    Scene
 ===================================== */
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xf5f5f5);
@@ -144,6 +139,7 @@ let animationAction = null;
 let animationPlaying = false;
 
 let heartModel;
+let kidneyModel;
 let clickableParts = [];
 let selectedPart = null;
 
@@ -159,42 +155,28 @@ if (selectedOrgan === "heart") {
   `;
 }
 
-// load the heart model
-loader.load(
-  "models/human_heart_3d_model_fbx_gltf.glb",
+function centerAndScaleModel(model, targetSize = 3, yOffset = 0) {
+  const box = new THREE.Box3().setFromObject(model);
+  const size = box.getSize(new THREE.Vector3());
 
-  function (gltf) {
+  const maxSize = Math.max(size.x, size.y, size.z);
+  const scale = targetSize / maxSize;
+  model.scale.setScalar(scale);
+
+  const scaledBox = new THREE.Box3().setFromObject(model);
+  const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
+
+  model.position.x = -scaledCenter.x;
+  model.position.y = -scaledCenter.y + yOffset;
+  model.position.z = -scaledCenter.z;
+}
+
+// loading the heart model
+function loadHeartModel() {
+  loader.load("models/human_heart_3d_model_fbx_gltf.glb", function (gltf) {
     heartModel = gltf.scene;
     scene.add(heartModel);
-
-    const box = new THREE.Box3().setFromObject(heartModel);
-    const center = box.getCenter(new THREE.Vector3());
-    const size = box.getSize(new THREE.Vector3());
-
-    /* scale first */
-    const maxSize = Math.max(size.x, size.y, size.z);
-    const scale = 3 / maxSize;
-    heartModel.scale.setScalar(scale);
-
-    /* recompute box after scaling */
-    const scaledBox = new THREE.Box3().setFromObject(heartModel);
-    const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
-
-    /* horizontal center */
-    heartModel.position.x = -scaledCenter.x;
-
-    /* vertical center FIX */
-    heartModel.position.y = -scaledCenter.y;
-
-    /* depth center */
-    heartModel.position.z = -scaledCenter.z;
-
-    /* OPTIONAL slight downward offset if needed */
-    heartModel.position.y -= 0.15;
-
-    /* =====================================
-       Continue rest of your existing code
-    ===================================== */
+    centerAndScaleModel(heartModel, 3, -0.15);
 
     heartModel.traverse((node) => {
       if (node.name && node.name.toLowerCase().includes("_jnt")) {
@@ -207,11 +189,39 @@ loader.load(
       animationAction = mixer.clipAction(gltf.animations[0]);
       animationAction.loop = THREE.LoopRepeat;
     }
-  },
-);
+  });
+}
+
+// loading the kidney model
+function loadKidneyModel() {
+  loader.load("models/kidney.glb", function (gltf) {
+    kidneyModel = gltf.scene;
+    scene.add(kidneyModel);
+
+    centerAndScaleModel(kidneyModel, 3, 0);
+
+    clickableParts = [];
+
+    kidneyModel.traverse((node) => {
+      if (node.isMesh) {
+        console.log(node.name);
+
+        if (kidneyOrganData[node.name]) {
+          clickableParts.push(node);
+        }
+      }
+    });
+  });
+}
+
+if (selectedOrgan === "kidneys") {
+  loadKidneyModel();
+} else {
+  loadHeartModel();
+}
 
 /* =====================================
-   PLAY
+   PLAY ANIMATION (Heart Only)
 ===================================== */
 function playHeartAnimation() {
   if (animationAction) {
@@ -221,7 +231,7 @@ function playHeartAnimation() {
 }
 
 /* =====================================
-   PAUSE
+   PAUSE ANIMATION (Heart Only)
 ===================================== */
 function pauseHeartAnimation() {
   if (animationAction) {
@@ -234,7 +244,7 @@ window.playHeartAnimation = playHeartAnimation;
 window.pauseHeartAnimation = pauseHeartAnimation;
 
 /* =====================================
-   Click Detection
+   Click Detection for each parts of the organ
 ===================================== */
 canvas.addEventListener("click", onClick);
 
@@ -244,8 +254,22 @@ function onClick(event) {
   mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
   mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-  raycaster.setFromCamera(mouse, camera);
+  raycaster.setFromCamera(mouse, activeCamera);
 
+  if (selectedOrgan === "kidneys") {
+    const hits = raycaster.intersectObjects(clickableParts, true);
+
+    if (hits.length > 0) {
+      const clicked = hits[0].object;
+
+      updateInfoPanel(clicked.name);
+      highlightMesh(clicked);
+    }
+
+    return;
+  }
+
+  // HEART OLD LOGIC
   let nearest = null;
   let nearestDistance = 99999;
 
@@ -290,11 +314,20 @@ function highlightPart(part) {
   selectedPart = part;
 }
 
-/* =====================================
-   Organ Data
-===================================== */
-/* Overview information for whole organs (shown when user navigates from cards)
-   Keys should match the `organ` query param used by index.html navigation. */
+function highlightMesh(mesh) {
+  if (selectedPart && selectedPart.materialBackup) {
+    selectedPart.material.emissive.setHex(0x000000);
+  }
+
+  if (mesh.material && mesh.material.emissive) {
+    mesh.materialBackup = true;
+    mesh.material.emissive.setHex(0xffff00);
+  }
+
+  selectedPart = mesh;
+}
+
+// Overview information for each supported organ when first loaded
 const organOverview = {
   heart: {
     title: "Human Heart",
@@ -358,6 +391,7 @@ const organOverview = {
   },
 };
 
+// function to show overview information about the organ when it is first loaded
 function showOrganOverview(organId) {
   const title = document.getElementById("organ-title");
   const desc = document.getElementById("part-description");
@@ -387,6 +421,10 @@ function showOrganOverview(organId) {
   `;
 }
 
+/* =====================================
+   Supported Organ Data
+===================================== */
+// heart data
 const organData = {
   right_atrium_jnt6: {
     title: "Right Atrium",
@@ -652,14 +690,136 @@ const organData = {
     },
   },
 };
-/* =====================================
-   Update Panel
-===================================== */
+
+// kedney data
+const kidneyOrganData = {
+  KidneyOutside_Riñon_0: {
+    title: "Kidney Body (Renal Parenchyma)",
+    description: `
+      <p>The kidney body is the main mass of the organ. It is protected by a tough, thin outer layer called the renal capsule. Underneath the capsule, the kidney body is divided into two regions: the outer <strong>renal cortex</strong> (darker, containing filtering units) and the inner <strong>renal medulla</strong> (lighter, containing cone‑shaped pyramids). Together, these tissues filter waste from blood, reabsorb needed substances, and produce urine. The bean‑shape of the kidney body maximizes surface area inside a compact space.</p>
+      <ul>
+        <li>Each kidney body contains about <strong>1 million</strong> tiny filters called nephrons – that’s where urine production begins.</li>
+        <li>The renal cortex receives the most blood flow because it does the initial filtering.</li>
+        <li>The kidney body is surrounded by a layer of fat that cushions and anchors it in place.</li>
+        <li>Despite being only 5% of your body weight, kidneys receive 20–25% of your blood with every heartbeat.</li>
+      </ul>
+    `,
+    funFact:
+      "Your kidney body is so good at filtering that it cleans your entire blood volume about 40 times every day – that’s over 1,500 liters of blood!",
+    quizQuestion: {
+      question: "What are the two main regions inside the kidney body?",
+      answer: "The renal cortex (outer) and renal medulla (inner).",
+    },
+  },
+
+  KidneyOutside_kidneyEdge_0: {
+    title: "Kidney Outer Edge (Lateral Border)",
+    description: `
+      <p>The kidney outer edge is the curved, convex side of the bean‑shaped organ. It faces outward toward the side of your body. This edge is covered by the renal capsule and contains mostly the renal cortex, where blood filtration begins. The convex shape helps the kidney fit snugly against the back muscles and the diaphragm. The opposite side of the kidney (the concave side) is called the <strong>hilum</strong> – where blood vessels and the ureter enter and exit.</p>
+      <ul>
+        <li>The outer edge is smooth and rounded, which prevents damage from rubbing against other organs.</li>
+        <li>Below the capsule on the outer edge, the cortex contains millions of tiny blood vessels (glomeruli) where filtration starts.</li>
+        <li>The outer edge is also where the kidney is easiest to feel during a medical exam, though it is deep inside the lower back.</li>
+        <li>In a healthy adult, each kidney’s outer edge is about 10–12 cm long – roughly the size of a computer mouse.</li>
+      </ul>
+    `,
+    funFact:
+      "The outer edge of the kidney is convex (curving outward) like the back of a spoon – and the inner edge is concave (curving inward) like the bowl of the spoon, where the ureter attaches.",
+    quizQuestion: {
+      question:
+        "What is the name of the concave inner side of the kidney where blood vessels and the ureter connect?",
+      answer: "The hilum.",
+    },
+  },
+
+  BezierCurve_arterias_0: {
+    title: "Renal Arteries",
+    description: `
+      <p>The renal arteries are blood vessels that carry <strong>oxygenated blood</strong> from the aorta (the main artery from the heart) directly to the kidneys. Each kidney receives one renal artery. Once inside the kidney, the renal artery branches into smaller and smaller arteries – eventually becoming tiny balls of capillaries called <strong>glomeruli</strong>. In the glomeruli, waste products and excess water are squeezed out of the blood to begin forming urine. The renal arteries deliver about 1.2 liters of blood to the kidneys every minute.</p>
+      <ul>
+        <li>Renal arteries are unique because they branch directly off the aorta – no other arteries in between.</li>
+        <li>Blood pressure in the renal arteries is high, which helps push fluid out into the nephrons for filtration.</li>
+        <li>If a renal artery becomes narrowed (a condition called <em>renal artery stenosis</em>), blood pressure can rise dangerously.</li>
+        <li>The right renal artery is longer than the left because it must cross behind the vena cava to reach the right kidney.</li>
+      </ul>
+    `,
+    funFact:
+      "Your kidneys receive more blood relative to their size than almost any other organ – about 20% of all blood pumped by the heart goes through the renal arteries!",
+    quizQuestion: {
+      question:
+        "Does the renal artery carry blood into the kidney or out of the kidney?",
+      answer: "Into the kidney (it brings oxygenated blood).",
+    },
+  },
+
+  BezierCurve001_tronco_0: {
+    title: "Renal Trunk (Main Renal Pedicle)",
+    description: `
+      <p>The renal trunk is the bundle of structures that enters and exits the kidney at the hilum. It includes the <strong>renal artery</strong> (bringing blood in), the <strong>renal vein</strong> (taking filtered blood out), and the <strong>ureter</strong> (carrying urine away). This bundle is surrounded by fat and connective tissue that holds everything together. The renal trunk is sometimes called the “renal pedicle” because it looks like a stalk attaching the kidney to the rest of the body. Without the renal trunk, the kidney would have no blood supply and no way to drain urine.</p>
+      <ul>
+        <li>The renal trunk is about 2–3 cm long in adults and is located at the level of the first or second lumbar vertebra (just above the waist).</li>
+        <li>Surgeons carefully clamp the renal trunk during kidney transplant surgery to stop blood flow while attaching the new kidney.</li>
+        <li>Within the renal trunk, the renal vein is usually positioned in front (anterior), the renal artery behind it, and the ureter furthest back (posterior).</li>
+        <li>In some people, there can be extra (accessory) renal arteries, so the trunk may contain more than one artery.</li>
+      </ul>
+    `,
+    funFact:
+      "The renal trunk is like a ‘plumbing manifold’ – it contains both the pipe bringing dirty blood in and the pipe taking clean blood out, plus the pipe carrying urine away, all in one small bundle!",
+    quizQuestion: {
+      question: "What three structures are found inside the renal trunk?",
+      answer: "The renal artery, renal vein, and ureter.",
+    },
+  },
+
+  BezierCurve002_venas_0: {
+    title: "Renal Veins",
+    description: `
+      <p>The renal veins carry <strong>filtered, deoxygenated blood</strong> away from the kidneys and back toward the heart. After the blood has been cleaned by the nephrons (waste removed and necessary substances reabsorbed), it collects into small veins that merge into larger ones, finally forming the left and right renal veins. The left renal vein is longer than the right because it has to cross the front of the aorta to reach the inferior vena cava (the large vein that returns blood to the heart). The renal veins carry blood that is now free of urea and excess salts, but still low in oxygen.</p>
+      <ul>
+        <li>The renal veins empty directly into the <strong>inferior vena cava</strong>, which is the main vein bringing blood from the lower body back to the heart.</li>
+        <li>Blood in the renal veins has lower pressure than blood in the renal arteries because most of the filtration pressure is lost in the glomeruli.</li>
+        <li>The right renal vein is very short (about 1 cm) because the right kidney sits close to the inferior vena cava.</li>
+        <li>Unlike the renal artery, the renal vein does not have a pulse – you can feel the difference if you could touch them during surgery.</li>
+      </ul>
+    `,
+    funFact:
+      "The left renal vein is almost three times longer than the right one – it has to travel across your spine to reach the vena cava, while the right renal vein is just a short hop!",
+    quizQuestion: {
+      question:
+        "Does the renal vein carry blood toward the heart or away from the heart?",
+      answer: "Toward the heart (it returns filtered blood).",
+    },
+  },
+
+  Icosphere_PiramideRenal_0: {
+    title: "Renal Pyramid",
+    description: `
+      <p>A renal pyramid is a cone‑shaped structure located in the <strong>renal medulla</strong> (the inner part of the kidney). Each kidney contains 8 to 18 pyramids. The base of each pyramid faces the outer cortex, and the tip (called the <strong>renal papilla</strong>) points inward toward the renal pelvis. The pyramids are made of parallel bundles of tiny tubes called <strong>collecting ducts</strong> and loops of Henle. These tubes carry urine from the cortex down to the papillae, where urine drips into small cups (calyces) before entering the ureter. The pyramids are what give the medulla its striped appearance.</p>
+      <ul>
+        <li>Between each pyramid are extensions of the cortex called <strong>renal columns</strong> (of Bertin) – they contain blood vessels that supply the medulla.</li>
+        <li>The urine concentration process mostly happens inside the pyramids – that’s why they are striped; the stripes are alternating sections of water‑absorbing and salt‑absorbing tubes.</li>
+        <li>In some animals (like rats), only one pyramid exists – humans have multiple to increase surface area for reabsorption.</li>
+        <li>The renal pyramids are very sensitive to lack of oxygen; if blood flow drops, they can be damaged faster than the cortex.</li>
+      </ul>
+    `,
+    funFact:
+      "The striped appearance of renal pyramids is so distinctive that on a cut‑open kidney you can see them with the naked eye – they look like triangular, pale stripes radiating from the center!",
+    quizQuestion: {
+      question: "What is the function of the renal pyramids?",
+      answer:
+        "They contain collecting ducts that move urine from the cortex to the renal pelvis.",
+    },
+  },
+};
+
+//  Update Panel information side on interaction with the organ parets
+// ===================================== */
 function updateInfoPanel(name) {
   const title = document.getElementById("organ-title");
   const desc = document.getElementById("part-description");
 
-  const data = organData[name];
+  const data =
+    selectedOrgan === "kidneys" ? kidneyOrganData[name] : organData[name];
 
   if (!data) {
     title.innerHTML = name;
@@ -713,7 +873,7 @@ function showAnswer(name) {
 window.showAnswer = showAnswer;
 
 /* =====================================
-   Zoom
+   Zoom using orthographic projection
 ===================================== */
 function adjustZoom(v) {
   if (currentViewMode === "2d") {
@@ -728,7 +888,7 @@ function adjustZoom(v) {
 window.adjustZoom = adjustZoom;
 
 /* =====================================
-   Resize
+    Handle window resize
 ===================================== */
 window.addEventListener("resize", () => {
   const w = canvas.clientWidth;
@@ -747,7 +907,7 @@ window.addEventListener("resize", () => {
 });
 
 /* =====================================
-   Animate
+   Animate (heartbeat loop)
 ===================================== */
 function animate() {
   requestAnimationFrame(animate);
@@ -762,7 +922,7 @@ function animate() {
   renderer.render(scene, activeCamera);
 }
 
-// show overview for the selected organ on initial load
+// To show some overview infn. about the organ when it is first loaded
 showOrganOverview(selectedOrgan);
 
 animate();
