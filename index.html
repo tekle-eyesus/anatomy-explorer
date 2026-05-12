@@ -287,43 +287,7 @@
           </div>
         </div>
 
-        <!-- Brain Card -->
-        <div class="organ-card" onclick="navigateToExplorer('brain')">
-          <div class="image-placeholder">
-            <img
-              src="https://media.geeksforgeeks.org/wp-content/uploads/20231011151200/Human-Brain.png"
-              alt="Human brain lobes and anatomy"
-              loading="lazy"
-            />
-          </div>
-          <div class="card-content">
-            <h2 id="cardTitle2">Brain</h2>
-            <p id="cardDesc2">
-              Explore how the brain manages thought, memory, emotion, and
-              movement.
-            </p>
-          </div>
-        </div>
-
-        <!-- Eye Card -->
-        <div class="organ-card" onclick="navigateToExplorer('eye')">
-          <div class="image-placeholder">
-            <img
-              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaq4Y-FMeb3tURKOwsb55BlszvNE212hDpiA&s"
-              alt="Cross section of human eye"
-              loading="lazy"
-            />
-          </div>
-          <div class="card-content">
-            <h2 id="cardTitle3">Eye</h2>
-            <p id="cardDesc3">
-              See how the eye focuses light and sends visual signals to the
-              brain.
-            </p>
-          </div>
-        </div>
-
-        <!-- Lungs Card -->
+        <!-- Kidney Card -->
         <div class="organ-card" onclick="navigateToExplorer('kidneys')">
           <div class="image-placeholder">
             <img
@@ -333,8 +297,8 @@
             />
           </div>
           <div class="card-content">
-            <h2 id="cardTitle4">Kidney</h2>
-            <p id="cardDesc4">
+            <h2 id="cardTitle2">Kidney</h2>
+            <p id="cardDesc2">
               Learn how the kidneys filter blood, balance fluids, and produce
               urine.
             </p>
@@ -352,14 +316,8 @@
           cardTitle1: "Heart",
           cardDesc1:
             "Learn how the heart pumps oxygen-rich blood throughout your body.",
-          cardTitle2: "Brain",
+          cardTitle2: "Kidney",
           cardDesc2:
-            "Explore how the brain manages thought, memory, emotion, and movement.",
-          cardTitle3: "Eye",
-          cardDesc3:
-            "See how the eye focuses light and sends visual signals to the brain.",
-          cardTitle4: "Kidney",
-          cardDesc4:
             "Learn how the kidneys filter blood, balance fluids, and produce urine.",
         },
         am: {
@@ -367,13 +325,8 @@
           subText: "በይነተግባባዊ ባለ ሶስት አቅጣጫ የሰውነት አካላት | ሕክምናዊ ምስላዊ መግለጫ",
           cardTitle1: "ልብ",
           cardDesc1: "ልብ በሰውነት ውስጥ ኦክስጅን የበለፀገ ደም እንዴት እንደሚፈስ ይወቁ።",
-          cardTitle2: "አንጎል",
-          cardDesc2: "አንጎል አስተሳሰብ፣ ትውስታ፣ ስሜት እና እንቅስቃሴን እንዴት እንደሚቆጣጠር ያስሱ።",
-          cardTitle3: "ዓይን",
-          cardDesc3:
-            "ዓይን ብርሃን እንዴት እንደሚያተኩር እና ምስላዊ ምልክቶችን ወደ አንጎል እንደሚልክ ይመልከቱ።",
-          cardTitle4: "ኩላሊት",
-          cardDesc4:
+          cardTitle2: "ኩላሊት",
+          cardDesc2:
             "ኩላሊቶች ደምን እንዴት እንደሚያጣሩ፣ ፈሳሽን እንዴት እንደሚመጥኑ እና ሽንት እንዴት እንደሚፈጥሩ ይረዱ።",
         },
       };
@@ -385,10 +338,6 @@
       const cardDesc1 = document.getElementById("cardDesc1");
       const cardTitle2 = document.getElementById("cardTitle2");
       const cardDesc2 = document.getElementById("cardDesc2");
-      const cardTitle3 = document.getElementById("cardTitle3");
-      const cardDesc3 = document.getElementById("cardDesc3");
-      const cardTitle4 = document.getElementById("cardTitle4");
-      const cardDesc4 = document.getElementById("cardDesc4");
       const langSelect = document.getElementById("languageSwitcher");
 
       function setLanguage(lang) {
@@ -403,10 +352,6 @@
         cardDesc1.textContent = t.cardDesc1;
         cardTitle2.textContent = t.cardTitle2;
         cardDesc2.textContent = t.cardDesc2;
-        cardTitle3.textContent = t.cardTitle3;
-        cardDesc3.textContent = t.cardDesc3;
-        cardTitle4.textContent = t.cardTitle4;
-        cardDesc4.textContent = t.cardDesc4;
 
         document.documentElement.lang = lang === "am" ? "am" : "en";
         localStorage.setItem("preferredLanguage", lang); // save preference locally
